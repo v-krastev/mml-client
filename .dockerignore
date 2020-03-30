@@ -1,0 +1,16 @@
+Dockerfile*
+
+.git/
+.gitignore
+
+/data/logs/
+/data/playlists/
+/data/songs/
+
+/tests/
+
+*.pyc
+
+__pycache__/
+venv/
+.idea/

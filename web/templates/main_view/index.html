@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>My Music Library</title>
+</head>
+
+<body>
+    <header>
+        <h1 align=center>My Music Library</h1>
+    </header>
+
+    <section>
+        <form id="pl_create" action="{{ url_for('main_view.create_playlist') }}" method="POST">
+            <p>
+                New Playlist:
+                <input type="text" name=new_pl_name>
+                <input type="submit" name=button_new_pl value="Create">
+            </p>
+        </form>
+        <form id="pl_select" action="{{ url_for('main_view.load_playlist') }}" method="POST">
+            Current Playlist:
+             <select form="pl_select" name="playlists" size=1 onchange="this.form.submit()">
+                 {% for list in all_playlists %}
+                    {% if list == current_playlist.name() %}
+                        <option value="{{ list }}" selected>{{ list }}</option>
+                    {% else %}
+                        <option value="{{ list }}">{{ list }}</option>
+                    {% endif %}
+                 {% endfor %}
+             </select>
+        </form>
+        <form id="pl_delete" action="{{ url_for('main_view.delete_playlist') }}" method="POST">
+            {% if current_playlist.name() == all_songs.name() %}
+            <!-- this is the default Playlist - it cannot be deleted: -->
+                <input type="submit" name=button_del_pl value="Delete Playlist" disabled>
+            {% else %}
+             <!-- any other Playlist can be deleted: -->
+                <input type="submit" name=button_del_pl value="Delete Playlist" onclick="this.form.submit()">
+            {% endif %}
+        </form>
+        <form id="add_songs" action="{{ url_for('main_view.add_song') }}" method="POST">
+            Add more Songs to the Playlist:
+            {% if current_playlist.name() == all_songs.name() %}
+                <!-- Cannot add songs to the default Playlist from here -->
+                <select form="add_songs" name="add_songs" size=1 disabled>
+                     <option value="Select" selected>Select...</option>
+                </select>
+                <input type="submit" name=button_add value="Add" disabled>
+            {% else %}
+                <select form="add_songs" name="add_songs" size=1 tabindex="">
+                    <option value="Select" selected>Select...</option>
+                    {% for song in all_songs %}
+                         <option value="{{ all_songs.songs.index(song) }}">{{ song.title() }}</option>
+                    {% endfor %}
+                </select>
+                <input type="submit" name=button_add value="Add">
+            {% endif %}
+
+        </form>
+        <form id="files" action="{{ url_for('main_view.add_file') }}" enctype="multipart/form-data" method="POST">
+            Add more Songs to the Repo:
+            <input type="file" name="audio_files" accept="audio/mpeg">
+            <input type="submit" name=button_add value="Add">
+        </form>
+    </section>
+
+    <section>
+        <form id="table">
+            <table style="width: 50%; height: 70%;" border="5">
+                <thead>
+                    <tr align=center>
+                        <td>Name</td> <td>Artist</td> <td>Length</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for song in current_playlist %}
+                        {% if current_playlist.current_song_index != -1 and song == current_playlist.songs[current_playlist.current_song_index] %}
+                            <!-- This marks the currently selected Song from the currently selected Playlist -->
+                            <tr bgcolor="blue">
+                                <td>{{ song.title() }}</td> <td>{{ song.artist() }}</td> <td align=center>{{ song.length_pretty(minutes=True, seconds=True) }}</td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td>{{ song.title() }}</td> <td>{{ song.artist() }}</td> <td align=center>{{ song.length_pretty(minutes=True, seconds=True) }}</td>
+                            </tr>
+                        {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </form>
+        <form id="song_options" action="{{ url_for('main_view.song_options') }}" method="POST">
+            {% if current_playlist.current_song_index < 0 or current_playlist|length == 0 %}
+                <!-- if NO Song is marked or Playlist is empty - no Song can be moved -->
+                <input type="submit" name=button_up value="Up" disabled>
+                <input type="submit" name=button_down value="Down" disabled>
+            {% elif current_playlist.current_song_index == 0 %}
+                <!-- if the FIRST Song is marked - no moving UP -->
+                <input type="submit" name=button_up value="Up" disabled>
+                <input type="submit" name=button_down value="Down">
+            {% elif current_playlist.current_song_index == current_playlist|length - 1 %}
+                <!-- if the LAST Song is marked - no moving DOWN -->
+                <input type="submit" name=button_up value="Up">
+                <input type="submit" name=button_down value="Down" disabled>
+            {% else %}
+                <!-- a Song in the MIDDLE is marked - moving allowed -->
+                <input type="submit" name=button_up value="Up">
+                <input type="submit" name=button_down value="Down">
+            {% endif %}
+
+            {% if current_playlist.name() == all_songs.name() or current_playlist.current_song_index < 0 or current_playlist|length == 0 %}
+                <!-- Never REMOVE Songs from the default Playlist or if NO Song is marked or Playlist is empty-->
+                <input type="submit" name=button_remove value="Remove" disabled>
+            {% else %}
+                <input type="submit" name=button_remove value="Remove">
+            {% endif %}
+        </form>
+    </section>
+
+        <section>
+            <form id="audio_buttons" action="{{ url_for('main_view.play_song') }}" method="POST">
+                {% if current_playlist.current_song_index <= 0 %}
+                    <!-- if no Song is marked or if the first Song is marked - no Prev Song exists -->
+                    <input type="submit" name=button_prev value="Prev" disabled>
+                {% else %}
+                    <input type="submit" name=button_prev value="Prev">
+                {% endif %}
+
+                <!-- change text when Song is playing -->
+                {% if song_playing %}
+                    <input type="submit" name=button_play value="Stop">
+                {% else %}
+                    <input type="submit" name=button_play value="Play">
+                {% endif %}
+
+                <!-- if the last Song is marked - no Next Song exists -->
+                {% if current_playlist.current_song_index == current_playlist.songs|length - 1 %}
+                    <input type="submit" name=button_next value="Next" disabled>
+                {% else %}
+                    <input type="submit" name=button_next value="Next">
+                {% endif %}
+            </form>
+        </section>
+
+    <footer>
+        <address>
+            <small>https://github/v-krastev/mml</small>
+        </address>
+    </footer>
+</body>
+
+</html>

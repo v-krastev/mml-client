@@ -1,0 +1,9 @@
+/data/logs/
+/data/playlists/
+/data/songs/
+
+*.pyc
+
+__pycache__/
+venv/
+.idea/
