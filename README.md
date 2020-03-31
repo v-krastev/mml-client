@@ -27,8 +27,8 @@ Any comments, questions or some other form of discussion/participation is welcom
 
 ### Instalation
 
-    git clone https://github.com/v-krastev/mml_client.git
-    cd mml_client
+    git clone https://github.com/v-krastev/mml-client.git
+    cd mml-client
 
 - Standalone:
 
